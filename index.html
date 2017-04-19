@@ -10,31 +10,25 @@
 	<meta name="author" content="">
 	<link rel="icon" href="../../favicon.ico">
 
-	<title>Dashboard Template for Bootstrap</title>
+	<title>Earthquakes in Oklahoma</title>
 
 	<link href="resources/css/bootstrap.min.css" rel="stylesheet">
 	<link href="resources/css/dashboard.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/rangeslider.js/2.2.0/rangeslider.min.css" rel="stylesheet">
 </head>
 
 <body>
 	<nav class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container-fluid">
 			<div class="navbar-header">
-				<a class="navbar-brand" href="#">Project name</a>
+				<a class="navbar-brand" href="#">Earthquakes in Oklahoma</a>
 			</div>
 		</div>
 	</nav>
 
 	<div class="container-fluid container-content">
 		<div class="row">
-			<div class="col-sm-3 col-md-2 sidebar">
-				<ul class="nav nav-sidebar">
-					<li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
-					<li><a href="#">Reports</a></li>
-					<li><a href="#">Analytics</a></li>
-					<li><a href="#">Export</a></li>
-				</ul>
-				
+			<div class="col-sm-3 col-md-2 sidebar">		
 				<ul class="nav nav-sidebar">
 					<li><a href="">Nav item</a></li>
 					<li><a href="">Nav item again</a></li>
@@ -42,19 +36,28 @@
 					<li><a href="">Another nav item</a></li>
 					<li><a href="">More navigation</a></li>
 				</ul>
-				
-				<ul class="nav nav-sidebar">
-					<li><a href="">Nav item again</a></li>
-					<li><a href="">One more nav</a></li>
-					<li><a href="">Another nav item</a></li>
-				</ul>
 			</div>
 
 			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 				<div id="map-container" style="width: 100%; height: 100%">
 				</div>
 			</div>
+			
+			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 row-time">
+				<div id="time-slider">
+					<input
+						type="range"
+						min="10"                   
+						max="1000"                  
+						step="10"                   
+						value="300"                 
+						data-orientation="horizontal" 
+					>
+				</div>
+			</div>
 		</div>
+		
+
 	</div>
 
 	<!-- Bootstrap core JavaScript
@@ -65,13 +68,51 @@
 
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/rangeslider.js/2.2.0/rangeslider.min.js"></script>
 	<script src="resources/js/datamaps.usa.min.js"></script>
 
 	<script>
+		// Range Slider (for time)
+		// Initialize a new plugin instance for all
+		// e.g. $('input[type="range"]') elements.
+		$('input[type="range"]').rangeslider({
+			// Deactivate the feature detection
+			polyfill: true,
+			// Callback function
+			onInit: function() {},
+			// Callback function
+			onSlide: function(position, value) {
+				console.log('onSlide');
+				console.log('position: ' + position, 'value: ' + value);
+			},
+			// Callback function
+			onSlideEnd: function(position, value) {
+				console.log('onSlideEnd');
+				console.log('position: ' + position, 'value: ' + value);
+			}
+        });
+		
+		// D3
 		var map = new Datamap({
-			element: document.getElementById('map-container'),
-			scope: 'usa',
+			element: document.getElementById('map-container'),		
+			scope: 'county',
 			responsive: true,
+			geographyConfig: {
+				dataUrl: 'resources/data/okCounties.json'
+			},
+			
+			setProjection: function(element) {
+				var projection = d3.geo.mercator()
+					.scale(10810.1807046590757)
+					.center([-98.7167115,35.32677932831009]) //projection center
+					.translate([element.offsetWidth / 2, element.offsetHeight / 2]) //translate to center the map in view
+
+				//Generate paths based on projection
+				var path = d3.geo.path()
+					.projection(projection);
+				
+				return {path: path, projection: projection};
+			}
 		});
 
 		window.addEventListener('resize', function() {
