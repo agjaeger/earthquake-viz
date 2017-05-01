@@ -21,7 +21,10 @@
 			background:none!important;
 			color:inherit;
 			border:none; 
-			padding:0!important;
+			padding:0;
+			
+			margin-left: 40px;
+			margin-top: 10px;
 			font: inherit;
 			/*border is optional*/
 			border-bottom:1px solid #444; 
@@ -135,18 +138,25 @@
 					return {path: path, projection: projection};
 				}
 			});
-			
-			modifiedCoords = map.projection([eqData[dataIndex]["long"], eqData[dataIndex]["lat"]]);
-			svg = d3.select("svg");
-			svg.append("circle")
-				.attr("r", 10)
-				.attr("cx", modifiedCoords[0])
-				.attr("cy", modifiedCoords[1])
-				.attr("fill", "#55A8B0")
-				.attr("fill-opacity", "0.99");
-		}
-	
 
+			map.bubbles(
+			[
+				{
+					radius: 10,
+					mag: eqData[dataIndex]["mag"],
+					fillKey: 'blue',
+					latitude: eqData[dataIndex]["lat"],
+					longitude: eqData[dataIndex]["long"],
+					date: eqData[dataIndex]["date"]
+				}
+			], 
+				{
+					popupTemplate: function(geo, data) {
+						return '<div class="hoverinfo"><strong>Earthquake Mag: ' + data.mag + ' Lat: ' + 
+						data.latitude + ' Long: '  + data.longitude + ' Date: ' + data.date + "</strong>";
+				}
+			});
+		}
 		
 		$(".eq").click(
 			function() {
