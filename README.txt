@@ -1,5 +1,5 @@
 
-To run this simulation:
+To run this simulation locally:
 	You must have python installed.
 	Open a command prompt in the root folder (The folder that has index.html)
 	
