@@ -15,6 +15,19 @@
 	<link href="resources/css/bootstrap.min.css" rel="stylesheet">
 	<link href="resources/css/dashboard.css" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/rangeslider.js/2.2.0/rangeslider.min.css" rel="stylesheet">
+	
+	<style>
+		button {
+			background:none!important;
+			color:inherit;
+			border:none; 
+			padding:0!important;
+			font: inherit;
+			/*border is optional*/
+			border-bottom:1px solid #444; 
+			cursor: pointer;
+		}
+	</style>
 </head>
 
 <body>
@@ -30,11 +43,11 @@
 		<div class="row">
 			<div class="col-sm-3 col-md-2 sidebar">		
 				<ul class="nav nav-sidebar">
-					<li><a href="">Nav item</a></li>
-					<li><a href="">Nav item again</a></li>
-					<li><a href="">One more nav</a></li>
-					<li><a href="">Another nav item</a></li>
-					<li><a href="">More navigation</a></li>
+					<li><button onclick="makeMap(0)">Date: 19-Nov-2015 Mag: 4.7</button></li>
+					<li><button onclick="makeMap(1)">Date: 30-Nov-2015 Mag: 4.7</button></li>
+					<li><button onclick="makeMap(2)">Date: 27-Nov-2015 Mag: 4.5</button></li>
+					<li><button onclick="makeMap(3)">Date: 23-Nov-2015 Mag: 4.4</button></li>
+					<li><button onclick="makeMap(4)">Date: 20-Nov-2015 Mag: 4.4</button></li>
 				</ul>
 			</div>
 
@@ -44,16 +57,21 @@
 			</div>
 			
 			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 row-time">
-				<div id="time-slider">
-					<input
-						type="range"
-						min="10"                   
-						max="1000"                  
-						step="10"                   
-						value="300"                 
-						data-orientation="horizontal" 
-					>
-				</div>
+				<p>EMS Legend</p>
+				<table>
+					<tr>
+						<td style="background-color:#FF0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#DF0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#BF0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#9F0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#7F0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#5F0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#3F0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#1F0000; width: 40px; height: 50px;"></td>
+						<td style="background-color:#000000; width: 40px; height: 50px;"></td>
+
+					</tr>
+				</table>
 			</div>
 		</div>
 		
@@ -70,54 +88,82 @@
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/rangeslider.js/2.2.0/rangeslider.min.js"></script>
 	<script src="resources/js/datamaps.usa.min.js"></script>
+	<script type="text/javascript" src="resources/data/earthquakeEMS.json"></script>
 
 	<script>
-		// Range Slider (for time)
-		// Initialize a new plugin instance for all
-		// e.g. $('input[type="range"]') elements.
-		$('input[type="range"]').rangeslider({
-			// Deactivate the feature detection
-			polyfill: true,
-			// Callback function
-			onInit: function() {},
-			// Callback function
-			onSlide: function(position, value) {
-				console.log('onSlide');
-				console.log('position: ' + position, 'value: ' + value);
-			},
-			// Callback function
-			onSlideEnd: function(position, value) {
-				console.log('onSlideEnd');
-				console.log('position: ' + position, 'value: ' + value);
-			}
-        });
+		var map = '';
+		var emsData = JSON.parse(countyColors);
+		var eqData = JSON.parse(earthquakes);
 		
-		// D3
-		var map = new Datamap({
-			element: document.getElementById('map-container'),		
-			scope: 'county',
-			responsive: true,
-			geographyConfig: {
-				dataUrl: 'resources/data/okCounties.json'
-			},
+		function makeMap(dataIndex) {
+			document.getElementById('map-container').innerHTML = "";
 			
-			setProjection: function(element) {
-				var projection = d3.geo.mercator()
-					.scale(10810.1807046590757)
-					.center([-98.7167115,35.32677932831009]) //projection center
-					.translate([element.offsetWidth / 2, element.offsetHeight / 2]) //translate to center the map in view
-
-				//Generate paths based on projection
-				var path = d3.geo.path()
-					.projection(projection);
+			map = new Datamap({
+				element: document.getElementById('map-container'),		
+				scope: 'county',
+				responsive: true,
+				fills: {
+					"defaultFill": "#D3D3D3",
+					"1": "#FF0000",
+					"2": "#DF0000",
+					"3": "#BF0000",
+					"4": "#9F0000",
+					"5": "#7F0000",
+					"6": "#5F0000",
+					"7": "#3F0000",
+					"8": "#1F0000",
+					"9": "#000000",				
+				},			
+				data: emsData[dataIndex],
+				geographyConfig: {
+					dataUrl: 'resources/data/okCounties.json',				
+					popupTemplate:  function(geography, data){
+						return '<div class=hoverinfo><strong>' + geography.properties.NAME + " County EMS: " + data["total"] + '</strong></div>';
+					},
+				},		
 				
-				return {path: path, projection: projection};
-			}
-		});
+				setProjection: function(element) {
+					var projection = d3.geo.mercator()
+						.scale(8810.1807046590757)
+						.center([-98.7167115, 35.32677932831009]) //projection center
+						.translate([element.offsetWidth / 2, element.offsetHeight / 2]) //translate to center the map in view
 
+					//Generate paths based on projection
+					var path = d3.geo.path()
+						.projection(projection);
+					
+					return {path: path, projection: projection};
+				}
+			});
+			
+			modifiedCoords = map.projection([eqData[dataIndex]["long"], eqData[dataIndex]["lat"]]);
+			svg = d3.select("svg");
+			svg.append("circle")
+				.attr("r", 10)
+				.attr("cx", modifiedCoords[0])
+				.attr("cy", modifiedCoords[1])
+				.attr("fill", "#55A8B0")
+				.attr("fill-opacity", "0.99");
+		}
+	
+
+		
+		$(".eq").click(
+			function() {
+				console.log(this.id);
+			}
+		);
+		
+		makeMap(0);
+		
+		console.log(map.data);
+		
 		window.addEventListener('resize', function() {
 			map.resize();
 		});
+		
+		
+		
 	</script>
 </body>
 </html>
